@@ -4,19 +4,20 @@ import it.unibo.bank.api.AccountHolder;
 import it.unibo.bank.api.BankAccount;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Assertions;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-
-import org.junit.jupiter.api.Assertions;
 
 /**
  * Test class for the {@link StrictBankAccount} class.
  */
 class TestStrictBankAccount {
+
+    private static final int ACCEPTABLE_MESSAGE_LENGTH = 10;
+    private static final double TEST_MANAGEMENT_FEES = 5.1;
 
     // Create a new AccountHolder and a StrictBankAccount for it each time tests are executed.
     private AccountHolder mRossi;
@@ -26,7 +27,7 @@ class TestStrictBankAccount {
      * Prepare the tests.
      */
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         this.mRossi = new AccountHolder("Mario", "Rossi", 1);
         this.bankAccount = new StrictBankAccount(mRossi, 0.0);
     }
@@ -35,7 +36,7 @@ class TestStrictBankAccount {
      * Test the initial state of the StrictBankAccount.
      */
     @Test
-    public void testInitialization() {
+    void testInitialization() {
         assertEquals(0.0, this.bankAccount.getBalance());
         assertEquals(0, this.bankAccount.getTransactionsCount());
         assertEquals(this.mRossi, this.bankAccount.getAccountHolder());
@@ -45,12 +46,12 @@ class TestStrictBankAccount {
      * Perform a deposit of 100€, compute the management fees, and check that the balance is correctly reduced.
      */
     @Test
-    public void testManagementFees() {
+    void testManagementFees() {
         this.bankAccount.deposit(this.bankAccount.getAccountHolder().getUserID(), 100);
         assertEquals(this.bankAccount.getBalance(), 100);
         assertEquals(this.bankAccount.getTransactionsCount(), 1);
         this.bankAccount.chargeManagementFees(this.bankAccount.getAccountHolder().getUserID());
-        assertEquals(this.bankAccount.getBalance(), 100-5.1);
+        assertEquals(this.bankAccount.getBalance(), 100 - TEST_MANAGEMENT_FEES);
         assertEquals(this.bankAccount.getTransactionsCount(), 0);
     }
 
@@ -58,15 +59,16 @@ class TestStrictBankAccount {
      * Test that withdrawing a negative amount causes a failure.
      */
     @Test
-    public void testNegativeWithdraw() {
+    void testNegativeWithdraw() {
         try {
-            this.bankAccount.withdraw(this.bankAccount.getAccountHolder().getUserID(), -100);;
+            this.bankAccount.withdraw(this.bankAccount.getAccountHolder().getUserID(), -1);
             Assertions.fail("Withdrawing a negative amount was possible, but should have thrown an exception");
         } catch (final IllegalArgumentException e) {
             assertEquals(0, bankAccount.getBalance());
             assertEquals(this.bankAccount.getTransactionsCount(), 0);
             assertNotNull(e.getMessage());
             assertFalse(e.getMessage().isBlank());
+            assertTrue(e.getMessage().length() >= ACCEPTABLE_MESSAGE_LENGTH);
         }
     }
 
@@ -74,15 +76,16 @@ class TestStrictBankAccount {
      * Test that withdrawing more money than it is in the account is not allowed.
      */
     @Test
-    public void testWithdrawingTooMuch() {
+    void testWithdrawingTooMuch() {
         try {
-            this.bankAccount.withdraw(this.bankAccount.getAccountHolder().getUserID(), 1);;
+            this.bankAccount.withdraw(this.bankAccount.getAccountHolder().getUserID(), 1);
             Assertions.fail("Withdrawing more money than it is in the account was possible, but should have thrown an exception");
         } catch (final IllegalArgumentException e) {
             assertEquals(0, bankAccount.getBalance());
             assertEquals(this.bankAccount.getTransactionsCount(), 0);
             assertNotNull(e.getMessage());
             assertFalse(e.getMessage().isBlank());
+            assertTrue(e.getMessage().length() >= ACCEPTABLE_MESSAGE_LENGTH);
         }
     }
 }
